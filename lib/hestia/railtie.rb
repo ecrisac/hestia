@@ -10,12 +10,6 @@ module Hestia
       extension = case ActionPack::VERSION::MAJOR
       when 3
         Hestia::SignedCookieJarExtension::ActionPack3
-      when 4
-        Hestia.check_secret_key_base
-        Hestia::SignedCookieJarExtension::ActionPack4
-      when 5
-        Hestia.check_secret_key_base
-        Hestia::SignedCookieJarExtension::ActionPack5
       end
 
       ActionDispatch::Cookies::SignedCookieJar.prepend(extension)

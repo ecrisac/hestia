@@ -7,7 +7,7 @@ module Hestia
 
     let(:message_verifier) { ActiveSupport::MessageVerifier.new("secret") }
     let(:singular_verifier) { MessageMultiVerifier.new(current_secret: "secret") }
-    let(:multi_verifier) { MessageMultiVerifier.new(current_secret: "secret", deprecated_secrets: %w(previous_secret)) }
+    let(:multi_verifier) { MessageMultiVerifier.new(current_secret: "secret", options: {}, deprecated_secrets: %w(previous_secret), deprecated_options: []) }
 
     describe "creation" do
       it "requires a current secret" do
@@ -15,7 +15,7 @@ module Hestia
       end
 
       it "can be created with current & deprecated secrets" do
-        MessageMultiVerifier.new(current_secret: "secret", deprecated_secrets: %w(previous_secret legacy_secret))
+        MessageMultiVerifier.new(current_secret: "secret", options: {}, deprecated_secrets: %w(previous_secret legacy_secret), deprecated_options: [])
       end
 
       it "can be created with current secret & options only" do
@@ -23,7 +23,7 @@ module Hestia
       end
 
       it "can be created with array of secrets and options for the verifiers" do
-        MessageMultiVerifier.new(current_secret: "secret", deprecated_secrets: %w(previous_secret), options: {digest: "MD5"})
+        MessageMultiVerifier.new(current_secret: "secret", options: {digest: "MD5"}, deprecated_secrets: %w(previous_secret), deprecated_options: [{digest: "MD5"}])
       end
 
       it "is immutable after creation" do
@@ -103,10 +103,10 @@ module Hestia
 
       it "verifies successfully when using custom digest" do
         multi_singular_secret = MessageMultiVerifier.new(current_secret: "secret", options: {digest: "MD5"})
-        multi_multiple_secret = MessageMultiVerifier.new(current_secret: "secret", deprecated_secrets: %w(previous_secret), options: {digest: "MD5"})
+        multi_multiple_secret = MessageMultiVerifier.new(current_secret: "secret", options: {digest: "MD5"}, deprecated_secrets: %w(previous_secret), deprecated_options: [{digest: "MD5"}])
 
-        current_cookie = ActiveSupport::MessageVerifier.new("secret", :digest => "MD5").generate("cookie dough")
-        previous_cookie = ActiveSupport::MessageVerifier.new("previous_secret", :digest => "MD5").generate("cookie dough")
+        current_cookie = ActiveSupport::MessageVerifier.new("secret", {digest: "MD5"}).generate("cookie dough")
+        previous_cookie = ActiveSupport::MessageVerifier.new("previous_secret", {digest: "MD5"}).generate("cookie dough")
 
         multi_singular_secret.verify(current_cookie).must_equal "cookie dough"
         multi_multiple_secret.verify(current_cookie).must_equal "cookie dough"
@@ -125,10 +125,10 @@ module Hestia
         end
 
         multi_singular_secret = MessageMultiVerifier.new(current_secret: "secret", options: {serializer: reverser})
-        multi_multiple_secret = MessageMultiVerifier.new(current_secret: "secret", deprecated_secrets: %w(previous_secret), options: {serializer: reverser})
+        multi_multiple_secret = MessageMultiVerifier.new(current_secret: "secret", options: {serializer: reverser}, deprecated_secrets: %w(previous_secret), deprecated_options: [{serializer: reverser}])
 
-        current_cookie = ActiveSupport::MessageVerifier.new("secret", :serializer => reverser).generate("cookie dough")
-        previous_cookie = ActiveSupport::MessageVerifier.new("previous_secret", :serializer => reverser).generate("cookie dough")
+        current_cookie = ActiveSupport::MessageVerifier.new("secret", {serializer: reverser}).generate("cookie dough")
+        previous_cookie = ActiveSupport::MessageVerifier.new("previous_secret", {serializer: reverser}).generate("cookie dough")
 
         multi_singular_secret.verify(current_cookie).must_equal "cookie dough"
         multi_multiple_secret.verify(current_cookie).must_equal "cookie dough"

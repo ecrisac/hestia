@@ -12,9 +12,11 @@ module Hestia
     # deprecated_secrets: [String, Array] The previous secret token(s), used for verifying cookies only
     # options [Hash] options to be passed to the verifiers - see ActiveSupport::MessageVerifier#initialze for details
     #
-    def initialize(current_secret:, deprecated_secrets: [], options: {})
+    def initialize(current_secret:, options: {}, deprecated_secrets: [], deprecated_options: [])
       @current_verifier = build_verifier(current_secret, options)
-      @deprecated_verifiers = Array(deprecated_secrets).map { |secret| build_verifier(secret, options) }.freeze
+      @deprecated_verifiers = deprecated_secrets.map.with_index do |secret, i|
+        build_verifier(secret, deprecated_options[i])
+      end.freeze
 
       # Generate these here so they are static when accessed in #verify
       @verifiers = [current_verifier, *deprecated_verifiers].freeze
@@ -53,6 +55,8 @@ module Hestia
         begin
           values << verifier.verify(signed_message)
         rescue ActiveSupport::MessageVerifier::InvalidSignature
+          errored_verifier_count += 1
+        rescue StandardError
           errored_verifier_count += 1
         end
       end
