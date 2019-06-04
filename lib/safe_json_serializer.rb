@@ -3,9 +3,8 @@ module SafeJSONSerializer
     # we use parse, because load is unsafe
     json = JSON.parse(source, quirks_mode: true)
     if json.is_a?(Hash) && json['flash']
-      value = json.delete('flash')
       flash = ActionDispatch::Flash::FlashHash.new
-      flash.update(value.to_h.with_indifferent_access)
+      flash.update(json.delete('flash').to_h.with_indifferent_access.symbolize_keys)
       json['flash'] = flash
     end
     json
