@@ -1,3 +1,3 @@
 module Hestia
-  VERSION = "0.3.3.mb"
+  VERSION = "0.3.4.mb"
 end

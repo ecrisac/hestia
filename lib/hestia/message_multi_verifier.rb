@@ -54,6 +54,10 @@ module Hestia
       results = verifiers.each_with_object([]) do |verifier, values|
         begin
           values << verifier.verify(signed_message)
+
+          if verifier != @current_verifier && Rails.application.config.respond_to?(:logger)
+            Rails.application.config.logger.info("MessageMultiVerifier signed_message deprecated")
+          end
         rescue ActiveSupport::MessageVerifier::InvalidSignature
           errored_verifier_count += 1
         rescue StandardError
