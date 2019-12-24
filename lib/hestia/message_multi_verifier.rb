@@ -49,16 +49,26 @@ module Hestia
     def verified(signed_message)
       errored_verifier_count = 0
 
+      current = false
+
       # Make sure we check *all* verifiers, every time we're called, to prevent timing attacks.
       # We run in a consistent amount of time no matter which (or if any) verifiers return a valid result
       results = verifiers.each_with_object([]) do |verifier, values|
         begin
           values << verifier.verify(signed_message)
+
+          if verifier == @current_verifier
+            current = true
+          end
         rescue ActiveSupport::MessageVerifier::InvalidSignature
           errored_verifier_count += 1
         rescue StandardError
           errored_verifier_count += 1
         end
+      end
+
+      if !current && Rails.application.config.respond_to?(:logger)
+        Rails.application.config.logger.info("MessageMultiVerifier signed_message deprecated")
       end
 
       # If all the verifiers errored, then none of them thought the message was valid
