@@ -51,7 +51,7 @@ module Hestia
 
         # Finally, override @verifier with our own multi verifier containing all the secrets
         @verifier = Hestia::MessageMultiVerifier.new(
-          current_secret: secret,
+          current_secret: active_secret,
           options: options,
           deprecated_secrets: deprecated_secrets,
           deprecated_options: deprecated_options
